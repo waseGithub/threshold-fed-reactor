@@ -13,7 +13,8 @@ Adafruit_INA219 ina219_D(0x45);
 
 const int chipSelect = 10;
 int currenthour;
-float set_voltage;
+float feed_voltage;
+float recirculation_voltage;
 
 void setup(void)
 {
@@ -27,6 +28,7 @@ void setup(void)
     }
   }
 }
+
 void loop(void)
 {
 
@@ -36,11 +38,6 @@ void loop(void)
   float loadvoltage_A = 0;
   float power_mW_A = 0;
 
-  float shuntvoltage_B = 0;
-  float busvoltage_B = 0;
-  float current_mA_B = 0;
-  float loadvoltage_B = 0;
-  float power_mW_B = 0;
 
 
   if (!ina219_C.begin())
@@ -69,19 +66,41 @@ void loop(void)
 
   if (Serial.available() > 0) {
     String receivedData = Serial.readString();
-    Serial.print("Data in:  ");
-    Serial.println(receivedData);
-    set_voltage = receivedData.toFloat();
+    // Serial.print("Data in:  ");
+    // Serial.println(receivedData);
 
-  }
+    // Convert String to char array.
+    char inputStr[receivedData.length() + 1];
+    receivedData.toCharArray(inputStr, sizeof(inputStr));
+
+    char* token = strtok(inputStr, ":::");
+    float num1 = atof(token);
+
+    token = strtok(NULL, ":::");
+    float num2 = atof(token);
+
+    // Use num1 and num2 as per your requirement
+    // Serial.print("Number 1: ");
+    // Serial.println(num1);
+    // Serial.print("Number 2: ");
+    // Serial.println(num2);
+
+    // If you need to use num1 to set the voltage
+    feed_voltage = num1;
+    recirculation_voltage = num2;
+
+}
+ 
+  Serial.print("Feed voltage in:  ");
+  Serial.println(feed_voltage);
+
+   Serial.print("Recirculation voltage in:  ");
+  Serial.println(recirculation_voltage);
 
 
-
-  Serial.print("Data in:  ");
-  Serial.println(set_voltage);
   float digital_v_input;
-  digital_v_input = (1242.9 * set_voltage) - 2.796;
-  Serial.print("digital intput:  ");
+  digital_v_input = (1242.9 * feed_voltage) - 2.796;
+  Serial.print("Feed voltage set:  ");
   Serial.println(digital_v_input); 
   Serial.println("");
 

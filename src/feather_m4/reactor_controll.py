@@ -80,73 +80,7 @@ class TimeCheck:
         self.last_event_time = time.time()
 
 
-# class Control:
-#     def __init__(self):
-#         self.feedrate = 0.1
-#         self.startup = True
-#         self.feedrate_min = 0.14
-#         self.feedrate_max = 0.4
-#         self.feedrate_file = 'feedrate.json'
 
-#         # check if the feedrate json file exists
-#         if os.path.exists(self.feedrate_file):
-#             with open(self.feedrate_file, 'r') as f:
-#                 data = json.load(f)
-#                 if 'feedrate' in data:
-#                     self.feedrate = data['feedrate']
-#             self.startup = False
-
-
-    # def SetPump(self, current_now: float, latest_gradient: float) -> float:
-    #     """
-    #     This method calculates and sets the new feedrate based on the current and the latest gradient.
-        
-    #     Parameters:
-    #     current_now (float): The current value.
-    #     latest_gradient (float): The latest gradient value.
-
-    #     Returns:
-    #     float: The updated feedrate.
-    #     """
-    #     print('current now', current_now)
-    #     print('latest gradient', latest_gradient)
-
-    #     current_min = 25.00
-    #     feedrate_step = 0.0001
-
-    #     sign = int(math.copysign(1, latest_gradient))
-    #     print('sign is', sign)
-
-
-
-    #     if self.startup:
-    #         print('System in start up phase')
-    #         # self.feedrate = self.feedrate_min
-
-            
-
-
-    #         if current_now > current_min:
-    #             self.feedrate += feedrate_step
-    #             self.startup = False
-    #     else:
-    #         if (sign == 1 or sign == 0) and self.feedrate < self.feedrate_max:
-    #             self.feedrate += feedrate_step
-    #             print('System healthy increasing feed')
-
-    #         elif (sign == -1) and self.feedrate >= self.feedrate_min:
-    #             self.feedrate -= feedrate_step
-    #             print('System overfed reducing feed')
-    #         elif (sign == -1) and self.feedrate <= self.feedrate_min:
-    #             self.feedrate += feedrate_step
-    #             print('System starved increasing feed')
-    #     print('Feedrate is', self.feedrate)
-
-    #     with open(self.feedrate_file, 'w') as f:
-    #         json.dump({'feedrate': self.feedrate}, f)
-
-
-    #     return self.feedrate
 
 
 
@@ -159,9 +93,13 @@ class State(Enum):
 class Control:
     def __init__(self):
         self.state = State.STARTUP
-        self.current_treshold = 70.00
+        self.current_threshold = 70.00
+        self.feedrate = 0 
         self.feedrate_file = 'feedrate.json'
         self.state_file = 'state.json'
+        self.feedrate_timer = TimeCheck()
+        self.pump_off_trig = 1 
+        self.recovery_time = 3 # changing to allow for feeding amount
         if os.path.exists(self.feedrate_file):
             with open(self.feedrate_file, 'r') as f:
                 data = json.load(f)
@@ -189,38 +127,67 @@ class Control:
         Returns:
         float: The updated feedrate.
         """
-        print('current now', current_now)
-        
+        print('Av current', current_now)
         if self.state == State.STARTUP:
-            # system has been running by previous manual operation / batch
-            # current should be stable but low
             print('State: STARTUP')
             print('System in start up phase')
-            if current_now >= self.current_treshold:
+            if current_now >= self.current_threshold:
+                print('State Change: FED')
+                print('Current detected to be above threshold no feeding required')
                 self.state = State.FED
             else :
+                print('State Change: STARVED')
+                print('Current detected to be below threshold feeding required')
                 self.state = State.STARVED
+              
 
         elif self.state == State.FED:
-            print('State: FED')
-            print('Current detected to be above threshold')
+           
             if current_now >= self.current_threshold:
+                print('State: FED')
+                print('Current detected to be above threshold no feeding required')
                 self.state = State.FED
             else:
+                print('State Change: STARVED')
+                print('Current detected to be below threshold feeding required')
                 self.state = State.STARVED
+                
+
+        
+        elif self.state == State.RECOVERY:
+            print('State: RECOVERY')
+            print('System is being dosed by feeding pump, waiting for current to recover above the set threshold before refeeding')
+            if current_now > self.current_threshold:
+                self.state = State.FED 
             
         elif self.state == State.STARVED:
             print('State: STARVED')
             print('Current detected to be below threshold dosing reactor with pump. System will now enter recovery')
             self.feedrate = 0.5
+            self.feedrate_timer.reset()
+            self.pump_off_trig = 0
+            print('State Change: Recovery')
+            print('Current detected to be below threshold feeding required')
             self.state = State.RECOVERY
+            
+            
+         
+        
 
-        elif self.state == State.RECOVERY:
-            print('State: RECOVERY')
-            print('System has been dosed by feeding pump, waiting for current to recover above the set threshold')
-            if current_now > self.current_threshold:
-                self.state = State.FED    
 
+
+
+    
+        if self.feedrate_timer.has_passed_minutes(1) and self.pump_off_trig == 0 : 
+            print("Stopping pump - elspased pump time", self.recovery_time, "3 minutes")
+            self.feedrate = 0
+            self.pump_off_trig = 1
+        elif self.pump_off_trig == 0:
+            print("pump currently dosing system")
+
+
+
+  
 
 
         print('Feedrate is', self.feedrate)

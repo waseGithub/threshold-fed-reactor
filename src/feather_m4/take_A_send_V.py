@@ -10,7 +10,7 @@ import json
 import math
 
 
-board_serial_number = 'EF36E23553374E4D4C202020FF112F20'  
+board_serial_number = 'AF0F89C75339473237202020FF194333'  
 port = None
 
 ports = list(serial.tools.list_ports.comports())
@@ -38,6 +38,7 @@ data_dict = {}
 gradient_dict = {}
 time_checker1 = TimeCheck()
 time_checker2 = TimeCheck()
+time_checker3 = TimeCheck()
 latest_gradient = 0 
 while True:
  
@@ -60,21 +61,21 @@ while True:
         
         data_dict['datetime'] = str(datetime.now())
         data_log_time_check = 0.1
-        feedrate_time_check = 3
+        feedrate_time_check =0.5
+        pump_does_time_check = 3
+
+        
+
+
         if time_checker1.has_passed_minutes(data_log_time_check):
             time_checker1.reset()
+            
 
 
-            try:
-                with open('gradient_data.json', 'r') as file:
-                    data = json.load(file)
-                    latest_gradient = data['latest_gradient']
-            except json.decoder.JSONDecodeError:
-                pass
-            print(data_dict)
-            print("Latest Gradient:", latest_gradient)
+    
+            if len(data_dict) == 6:
 
-            if len(data_dict) == 5:
+                print(data_dict)
 
                 df = pd.DataFrame(data_dict, index=[data_dict['datetime']])
                 df = df.drop('datetime', axis=1)
@@ -86,20 +87,20 @@ while True:
                 else:
                     df.to_csv(csv_file, mode='a', header=False)
 
-            
+                
 
-                # Extract the data value
+                df = pd.read_csv(csv_file)
+                
+                df['A Current'] = df['A Current'].str.replace(' mA', '').astype(float)
+                if len(df) >= 30:
+                
+                    current_now = df['A Current'].tail(6).mean()
+                else: 
+                    print('length check fail')
+                    current_now = 0
             
-
-            df = pd.read_csv(csv_file)
-            
-            df['A Current'] = df['A Current'].str.replace(' mA', '').astype(float)
-            if len(df) >= 30:
-            
-                current_now = df['A Current'].tail(30).mean()
-            else: 
-                print('length check fail')
-                current_now = 0
+            else:
+                print(data_dict)
 
             
 
@@ -107,22 +108,24 @@ while True:
             if time_checker2.has_passed_minutes(feedrate_time_check):
                 time_checker2.reset()
                 response_voltage = control.SetPump(current_now, latest_gradient)
-                # response_voltage = str(sign_text[sign]) 
+
+
+            
+
+                reciruclation_voltage = 0.2
                 ser.write(str(response_voltage).encode())
+                ser.write((':::').encode())
+                ser.write(str(reciruclation_voltage).encode())
+            
+
                 print('feedrate voltage', str(response_voltage))
-        
-                # Construct a DataFrame with the data
                 data_to_append = pd.DataFrame({'datetime': [pd.to_datetime('now')], 'feedrate voltage': [response_voltage]})
-
-                    # Append the data to the CSV file
-                # data_to_append.to_csv('feedrate_data.csv', mode='a', header=False, index=False)
-
-
                 if not os.path.isfile('feedrate_data.csv') or os.stat('feedrate_data.csv').st_size == 0:
                     print('making new csv for feedrate')
                     data_to_append.to_csv('feedrate_data.csv', mode='w', header=False)
                 else:
                     data_to_append.to_csv('feedrate_data.csv', mode='a', header=False)
+        
 
 
 
