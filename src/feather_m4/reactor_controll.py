@@ -8,36 +8,7 @@ import os
 from enum import Enum
 
 
-# class TrendGradientCalculator:
-#     def __init__(self, dataframe):
-#         self.dataframe = dataframe
-    
-#     def calculate_gradient(self):
-#         # Convert the 'datetime' column to pandas datetime format
-#         self.dataframe['datetime'] = pd.to_datetime(self.dataframe['datetime'])
-            
-#         # Sort the DataFrame by datetime in ascending order
-#         self.dataframe.sort_values('datetime', inplace=True)
-            
-#         # Set the 'datetime' column as the DataFrame index
-#         self.dataframe.set_index('datetime', inplace=True)
-            
-#         # Filter the DataFrame for the last three minutes of data
-#         start_time = self.dataframe.index[-1] - dt.timedelta(minutes=60)
-#         last_minute_df = self.dataframe[start_time:]
-            
-#         # Convert the 'A Current' column to float
-#         last_minute_df['A Current'] = last_minute_df['A Current'].str.replace(' mA', '').astype(float)
-        
-#         # # Calculate the rolling mean with a window size of 10
-#         # last_minute_df['A Current'] = last_minute_df['A Current'].rolling(window=20).mean()
 
-#         # Calculate the gradient using NumPy's polyfit function
-#         x = (last_minute_df.index - last_minute_df.index[0]).total_seconds()
-#         y = last_minute_df['A Current']
-#         gradient = np.polyfit(x, y, 1)[0]
-            
-#         return gradient
 
     
 
@@ -99,20 +70,30 @@ class Control:
         self.state_file = 'state.json'
         self.feedrate_timer = TimeCheck()
         self.pump_off_trig = 1 
-        self.recovery_time = 3 # changing to allow for feeding amount
-        if os.path.exists(self.feedrate_file):
-            with open(self.feedrate_file, 'r') as f:
-                data = json.load(f)
-                if 'feedrate' in data:
-                    self.feedrate = data['feedrate']
-            self.startup = False
+        self.pump_pulse_time = 3.46 #20ml
+
+        self.preset_high_pump_V = 1.6
+        #recircluation pump variables
+        self.trigger_counter = 0 
+        self.recirculation_daily_timer = TimeCheck()
+        self.recirculation_pump_timer = TimeCheck()
+        self.reciruc_pump_on = False
+        self.counter = 0 
+
+
+        # if os.path.exists(self.feedrate_file):
+        #     with open(self.feedrate_file, 'r') as f:
+        #         data = json.load(f)
+        #         if 'feedrate' in data:
+        #             self.feedrate = data['feedrate']
+        #     self.startup = False
         
-        if os.path.exists(self.state_file):
-            print('State file exists')
-            with open(self.state_file, 'r') as f:
-                data = json.load(f)
-                if 'state' in data:
-                    self.state = data['state']
+        # if os.path.exists(self.state_file):
+        #     print('State file exists')
+        #     with open(self.state_file, 'r') as f:
+        #         data = json.load(f)
+        #         if 'state' in data:
+        #             self.state = data['state']
   
 
 
@@ -163,7 +144,7 @@ class Control:
         elif self.state == State.STARVED:
             print('State: STARVED')
             print('Current detected to be below threshold dosing reactor with pump. System will now enter recovery')
-            self.feedrate = 0.5
+            self.feedrate = self.preset_high_pump_V
             self.feedrate_timer.reset()
             self.pump_off_trig = 0
             print('State Change: Recovery')
@@ -172,31 +153,56 @@ class Control:
             
             
          
-        
-
-
-
-
-    
-        if self.feedrate_timer.has_passed_minutes(1) and self.pump_off_trig == 0 : 
-            print("Stopping pump - elspased pump time", self.recovery_time, "3 minutes")
+        if self.feedrate_timer.has_passed_minutes(self.pump_pulse_time) and self.pump_off_trig == 0 : 
+            print("Stopping pump - elspased pump time", self.pump_pulse_time, "minutes")
             self.feedrate = 0
             self.pump_off_trig = 1
         elif self.pump_off_trig == 0:
             print("pump currently dosing system")
 
-
-
-  
-
-
         print('Feedrate is', self.feedrate)
         print('Last state is', str(self.state))
 
-        with open(self.feedrate_file, 'w') as f:
-            json.dump({'feedrate': self.feedrate}, f)
+        # with open(self.feedrate_file, 'w') as f:
+        #     json.dump({'feedrate': self.feedrate}, f)
         
-        with open(self.state_file, 'w') as f:
-            json.dump({'state': str(self.state)}, f)
+        # with open(self.state_file, 'w') as f:
+        #     json.dump({'state': str(self.state)}, f)
 
         return self.feedrate
+    
+
+
+
+
+
+    def SetRecirculation(self, pump_feedV: float, recirculation_percentage : float):
+
+
+        if pump_feedV > 0 and self.trigger_counter == 0:
+            self.counter +=1
+            self.trigger_counter = 1
+        elif pump_feedV == 0 :
+            self.trigger_counter = 0 
+        
+
+        day_in_mins = 60*24
+        recirc_T = self.counter * self.pump_pulse_time * recirculation_percentage
+        if self.recirculation_daily_timer.has_passed_minutes(5):
+            
+            print("Recirculation pump active - for", recirc_T, "minutes")
+            self.recirculation_daily_timer.reset()
+            self.reciruc_pump_on = self.preset_high_pump_V
+
+        
+        if self.recirculation_pump_timer.has_passed_minutes(recirc_T) and self.reciruc_pump_on != 0:
+            self.reciruc_pump_on = 0
+
+
+        print('Recirculation pump status is', self.reciruc_pump_on)
+        print('Current feed count is:', self.counter)
+        if self.reciruc_pump_on != 0 :
+            print('Recirculation pump status pn for', recirc_T)
+
+
+        return self.reciruc_pump_on

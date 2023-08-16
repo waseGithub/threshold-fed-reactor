@@ -90,31 +90,28 @@ void loop(void)
     recirculation_voltage = num2;
 
 }
+
+
  
   Serial.print("Feed voltage in:  ");
-  Serial.println(feed_voltage);
+Serial.println(feed_voltage);
 
-   Serial.print("Recirculation voltage in:  ");
-  Serial.println(recirculation_voltage);
+Serial.print("Recirculation voltage in:  ");
+Serial.println(recirculation_voltage);
 
+float analogToDigitalScaleFactor = 2048.0 / 1.65;
+float digital_feed_voltage = feed_voltage * analogToDigitalScaleFactor;
+float digital_recirculation_voltage = recirculation_voltage * analogToDigitalScaleFactor; 
 
-  float digital_v_input;
-  digital_v_input = (1242.9 * feed_voltage) - 2.796;
-  Serial.print("Feed voltage set:  ");
-  Serial.println(digital_v_input); 
-  Serial.println("");
+Serial.print("Feed voltage set:  ");
+Serial.println(digital_feed_voltage); 
+Serial.println("");
 
-
-
-
-  mcp.setChannelValue(MCP4728_CHANNEL_D, digital_v_input);
-  mcp.saveToEEPROM();
-  delay(3000);
+mcp.setChannelValue(MCP4728_CHANNEL_D, digital_feed_voltage);
+mcp.setChannelValue(MCP4728_CHANNEL_A, digital_recirculation_voltage);
+mcp.saveToEEPROM();
+delay(3000);
 }
-
-
-
-
 
 
 

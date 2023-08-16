@@ -104,22 +104,21 @@ while True:
 
             
 
-        
+            
             if time_checker2.has_passed_minutes(feedrate_time_check):
                 time_checker2.reset()
                 response_voltage = control.SetPump(current_now, latest_gradient)
-
-
-            
-
-                reciruclation_voltage = 0.2
+                biomas_recirculation_percentage = 0.1
+                reciruclation_voltage = control.SetRecirculation(response_voltage, biomas_recirculation_percentage)
+                # reciruclation_voltage = 0.2
                 ser.write(str(response_voltage).encode())
                 ser.write((':::').encode())
                 ser.write(str(reciruclation_voltage).encode())
             
 
                 print('feedrate voltage', str(response_voltage))
-                data_to_append = pd.DataFrame({'datetime': [pd.to_datetime('now')], 'feedrate voltage': [response_voltage]})
+                print('recirculation voltage', str(reciruclation_voltage))
+                data_to_append = pd.DataFrame({'datetime': [pd.to_datetime('now')], 'feedrate voltage': [response_voltage], 'reciculation voltage': [reciruclation_voltage]})
                 if not os.path.isfile('feedrate_data.csv') or os.stat('feedrate_data.csv').st_size == 0:
                     print('making new csv for feedrate')
                     data_to_append.to_csv('feedrate_data.csv', mode='w', header=False)
