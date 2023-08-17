@@ -71,8 +71,8 @@ class Control:
         self.feedrate_timer = TimeCheck()
         self.pump_off_trig = 1 
         self.pump_pulse_time = 3.46 #20ml
-        # 1.6
-        self.preset_high_pump_V = -1
+
+        self.preset_high_pump_V = 1.6
         #recircluation pump variables
         self.trigger_counter = 0 
         self.recirculation_daily_timer = TimeCheck()
