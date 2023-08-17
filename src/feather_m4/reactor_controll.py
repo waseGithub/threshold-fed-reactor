@@ -188,11 +188,12 @@ class Control:
 
         day_in_mins = 60*24
         recirc_T = self.counter * self.pump_pulse_time * recirculation_percentage
-        if self.recirculation_daily_timer.has_passed_minutes(5):
+        if self.recirculation_daily_timer.has_passed_minutes(day_in_mins):
             
             print("Recirculation pump active - for", recirc_T, "minutes")
             self.recirculation_daily_timer.reset()
             self.reciruc_pump_on = self.preset_high_pump_V
+            self.counter = 0    
 
         
         if self.recirculation_pump_timer.has_passed_minutes(recirc_T) and self.reciruc_pump_on != 0:
