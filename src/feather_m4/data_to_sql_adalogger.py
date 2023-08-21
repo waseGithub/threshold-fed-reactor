@@ -57,7 +57,7 @@ def resample_max(df, time, cols, round_val):
 
 
 
-
+df_auto_control['A Current'] = df_auto_control['A Current'].str.replace(' mA', '').astype(float)
 df_auto_control['datetime'] = pd.to_datetime(df_auto_control['datetime'], errors='coerce')
 df_auto_control.set_index('datetime', inplace=True)
 
@@ -74,7 +74,7 @@ df_auto_control = df_auto_control.dropna(subset=['A Bus Voltage', 'A Current'])
 
 
 print(df_auto_control)
-df_auto_control = resample_mean(df_auto_control, '30T', ['A Bus Voltage','A Current', 'Set Voltage','digital intput'], 3)
+df_auto_control = resample_mean(df_auto_control, '30T', ['A Bus Voltage','A Current', 'Feed voltage in','Recirculation voltage in', 'Feed voltage set'], 3)
 
 
 
@@ -92,7 +92,7 @@ df_auto_control.to_csv('test.csv')
 
 
 
-cnx = mysql.connector.connect(user='root', password='wase2022', host='34.89.81.147', database='r2_autonomous_reactor_PHIL')
+cnx = mysql.connector.connect(user='root', password='wase2022', host='34.89.81.147', database='r4_autonomous_reactor_BILL')
 
 
  
