@@ -70,8 +70,7 @@ class Control:
         self.state_file = 'state.json'
         self.feedrate_timer = TimeCheck()
         self.pump_off_trig = 1 
-        self.pump_pulse_time = 3.46 #20ml
-
+        self.pump_pulse_time = 1.73 #20ml
         self.preset_high_pump_V = 1.6
         #recircluation pump variables
         self.trigger_counter = 0 
