@@ -64,7 +64,7 @@ class State(Enum):
 class Control:
     def __init__(self):
         self.state = State.STARTUP
-        self.current_threshold = 70.00
+        self.current_threshold = 15.00
         self.feedrate = 0 
         self.feedrate_file = 'feedrate.json'
         self.state_file = 'state.json'
@@ -115,7 +115,7 @@ class Control:
                 print('State Change: FED')
                 print('Current detected to be above threshold no feeding required')
                 self.state = State.FED
-            else :
+            elif current_now != 0 :
                 print('State Change: STARVED')
                 print('Current detected to be below threshold feeding required')
                 self.state = State.STARVED
@@ -127,7 +127,7 @@ class Control:
                 print('State: FED')
                 print('Current detected to be above threshold no feeding required')
                 self.state = State.FED
-            else:
+            elif current_now != 0:
                 print('State Change: STARVED')
                 print('Current detected to be below threshold feeding required')
                 self.state = State.STARVED

@@ -15,10 +15,11 @@ import pandas as pd
 
 
 
-colnames = ['datetime','A Bus Voltage','A Current', 'Set Voltage','digital intput']
+colnames = ['datetime','A Bus Voltage','A Current','Feed voltage in','Recirculation voltage in','Feed voltage set']
+
 # data = pd.read_csv ('/home/harvey/Documents/PlatformIO/Projects/autonomous reactor feed/data.csv',  names=colnames, skiprows=  1)
 
-data = pd.read_csv('/home/wase/phil_autonomous_reactor-/src/feather_m4/adalogger_data.csv', names=colnames, skiprows=  1)
+data = pd.read_csv('/home/wase/threshold-fed-reactor/src/feather_m4/adalogger_data.csv', names=colnames, skiprows=  1)
 #data = pd.read_csv (r'/home/farscopestudent/Documents/WASE/wase-cabinet/flowmeter_push.csv')  
 df_auto_control = pd.DataFrame(data)
 
@@ -55,16 +56,14 @@ def resample_max(df, time, cols, round_val):
 
 
 
-
-
-df_auto_control['A Current'] = df_auto_control['A Current'].str.replace(' mA', '').astype(float)
 df_auto_control['datetime'] = pd.to_datetime(df_auto_control['datetime'], errors='coerce')
 df_auto_control.set_index('datetime', inplace=True)
 
 df_auto_control['A Bus Voltage'] = df_auto_control['A Bus Voltage'].str.replace(' V', '')
+
+
+df_auto_control['A Current'] = df_auto_control['A Current'].astype(str)
 df_auto_control['A Current'] = df_auto_control['A Current'].str.replace(' mA', '')
-
-
 
 df_auto_control['A Bus Voltage'] = pd.to_numeric(df_auto_control['A Bus Voltage'], errors='coerce')
 df_auto_control['A Current'] = pd.to_numeric(df_auto_control['A Current'], errors='coerce')
@@ -73,10 +72,9 @@ df_auto_control = df_auto_control.dropna(subset=['A Bus Voltage', 'A Current'])
 
 
 
+df_auto_control = resample_mean(df_auto_control, '10T', ['A Bus Voltage','A Current', 'Feed voltage in','Recirculation voltage in', 'Feed voltage set'], 3)
+
 print(df_auto_control)
-df_auto_control = resample_mean(df_auto_control, '30T', ['A Bus Voltage','A Current', 'Feed voltage in','Recirculation voltage in', 'Feed voltage set'], 3)
-
-
 
 
 
@@ -111,4 +109,4 @@ for i,row in df_auto_control.iterrows():
 cnx.close()
 
 
-os.remove('/home/wase/phil_autonomous_reactor-/src/feather_m4/adalogger_data.csv')
+os.remove('/home/wase/threshold-fed-reactor/src/feather_m4/adalogger_data.csv')
