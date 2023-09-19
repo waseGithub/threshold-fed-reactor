@@ -64,13 +64,13 @@ class State(Enum):
 class Control:
     def __init__(self):
         self.state = State.STARTUP
-        self.current_threshold = 15.00
+        self.current_threshold = 35.00
         self.feedrate = 0 
         self.feedrate_file = 'feedrate.json'
         self.state_file = 'state.json'
         self.feedrate_timer = TimeCheck()
         self.pump_off_trig = 1 
-        self.pump_pulse_time = 1.73 #20ml
+        self.pump_pulse_time = 1.05 #5ml
         self.preset_high_pump_V = 1.6
         #recircluation pump variables
         self.trigger_counter = 0 
