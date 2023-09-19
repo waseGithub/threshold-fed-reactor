@@ -69,8 +69,10 @@ class Control:
         self.feedrate_file = 'feedrate.json'
         self.state_file = 'state.json'
         self.feedrate_timer = TimeCheck()
+        self.since_feed_timer = TimeCheck()
         self.pump_off_trig = 1 
         self.pump_pulse_time = 1.05 #5ml
+        self.feed_time_interval = 180
         self.preset_high_pump_V = 1.6
         #recircluation pump variables
         self.trigger_counter = 0 
@@ -120,24 +122,27 @@ class Control:
                 print('Current detected to be below threshold feeding required')
                 self.state = State.STARVED
               
-
         elif self.state == State.FED:
            
             if current_now >= self.current_threshold:
                 print('State: FED')
                 print('Current detected to be above threshold no feeding required')
                 self.state = State.FED
-            elif current_now != 0:
+
+            elif current_now != 0 and self.feedrate_timer.has_passed_minutes(self.feed_time_interval):
                 print('State Change: STARVED')
                 print('Current detected to be below threshold feeding required')
                 self.state = State.STARVED
+            else:
+                print('State: FED')
+                print('The average monitored current showed to dip below 0, however the set feed interval has not been met')
+                self.state = State.FED
                 
-
-        
         elif self.state == State.RECOVERY:
             print('State: RECOVERY')
             print('System is being dosed by feeding pump, waiting for current to recover above the set threshold before refeeding')
             if current_now > self.current_threshold:
+                self.since_feed_timer.reset()
                 self.state = State.FED 
             
         elif self.state == State.STARVED:
@@ -148,9 +153,7 @@ class Control:
             self.pump_off_trig = 0
             print('State Change: Recovery')
             print('Current detected to be below threshold feeding required')
-            self.state = State.RECOVERY
-            
-            
+            self.state = State.RECOVERY    
          
         if self.feedrate_timer.has_passed_minutes(self.pump_pulse_time) and self.pump_off_trig == 0 : 
             print("Stopping pump - elspased pump time", self.pump_pulse_time, "minutes")
