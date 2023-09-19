@@ -64,7 +64,7 @@ class State(Enum):
 class Control:
     def __init__(self):
         self.state = State.STARTUP
-        self.current_threshold = 35.00
+        self.current_threshold = 30.00
         self.feedrate = 0 
         self.feedrate_file = 'feedrate.json'
         self.state_file = 'state.json'
