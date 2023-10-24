@@ -88,17 +88,19 @@ while True:
                     df.to_csv(csv_file, mode='a', header=False)
 
                 
-
-                df = pd.read_csv(csv_file)
+                try:
+                    df = pd.read_csv(csv_file)
+                    
+                    df['A Current'] = df['A Current'].str.replace(' mA', '').astype(float)
+                    if len(df) >= 30:
+                    
+                        current_now = df['A Current'].tail(6).mean()
+                    else: 
+                        print('length check fail')
+                        current_now = 0
+                except FileExistsError:
+                    pass
                 
-                df['A Current'] = df['A Current'].str.replace(' mA', '').astype(float)
-                if len(df) >= 30:
-                
-                    current_now = df['A Current'].tail(6).mean()
-                else: 
-                    print('length check fail')
-                    current_now = 0
-            
             else:
                 print(data_dict)
 
