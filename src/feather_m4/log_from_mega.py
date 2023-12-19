@@ -4,7 +4,7 @@ from datetime import datetime
 import os 
 from reactor_controll import TimeCheck
 
-board_serial_number = '95131333137351D091D0'  
+board_serial_number = '55037313237351C08271'  
 port = None
 
 
