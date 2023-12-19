@@ -28,7 +28,7 @@ csv_file = 'mega_data.csv'
 ################
 # Read data from Arduino
 data_dict = {}
-time_checker1 = time_check()
+time_checker1 = TimeCheck()
 while True:
     if ser.in_waiting > 0:
         line = ser.readline().decode('utf-8').rstrip()
