@@ -2,7 +2,7 @@ import serial.tools.list_ports
 import pandas as pd
 from datetime import datetime
 import os 
-from reactor_controll import time_check
+from reactor_controll import TimeCheck
 
 board_serial_number = '95131333137351D091D0'  
 port = None
