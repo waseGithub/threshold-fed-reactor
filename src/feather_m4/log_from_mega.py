@@ -37,6 +37,7 @@ while True:
         lines = line.split('\n')
         for line in lines:
             line = line.strip()
+            print(line)
       
             if line:
                 key, value = line.split(':', 2)
