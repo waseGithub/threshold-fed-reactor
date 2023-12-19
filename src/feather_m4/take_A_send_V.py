@@ -28,7 +28,7 @@ board_baud_rate = 115200
 ser = serial.Serial(port, board_baud_rate)
 
 # CSV file path
-csv_file = 'adalogger_data.csv'
+csv_file = '/home/wase/threshold-fed-reactor/src/feather_m4/adalogger_data.csv'
 
 
 
