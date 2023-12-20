@@ -18,7 +18,9 @@ def resample_mean(df, time, cols, round_val):
     return df
 
 colnames = ['datetime','Gas 1','Gas 2','Gas 3']
-data = pd.read_csv ('/home/wase/phil_autonomous_reactor_data_logging-/src/mega_data.csv', names=colnames, skiprows=1)
+data = pd.read_csv ('/home/wase/threshold-fed-reactor/src/feather_m4/mega_data.csv', names=colnames, skiprows=1)
+
+
 df_data = pd.DataFrame(data)
 
 df_data['datetime'] = pd.to_datetime(df_data['datetime'], errors='coerce')
@@ -60,4 +62,4 @@ for i,row in df_data.iterrows():
 cnx.close()
 
 
-os.remove('/home/wase/phil_autonomous_reactor_data_logging-/src/mega_data.csv')
+os.remove('/home/wase/threshold-fed-reactor/src/feather_m4/mega_data.csv')
