@@ -45,7 +45,7 @@ df_data.to_csv('test.csv')
 
 print(df_data)
 
-cnx = mysql.connector.connect(user='root', password='wase2022', host='34.89.81.147', database='r2_autonomous_reactor_PHIL')
+cnx = mysql.connector.connect(user='root', password='wase2022', host='34.89.81.147', database='r4_autonomous_reactor_BILL')
 
 cursor = cnx.cursor()
 cols = "`,`".join([str(i) for i in df_data.columns.tolist()])
