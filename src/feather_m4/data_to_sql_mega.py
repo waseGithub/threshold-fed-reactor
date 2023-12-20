@@ -41,7 +41,7 @@ df_data = resample_mean(df_data, '30T', ['Gas 1','Gas 2','Gas 3'], 3)
 df_data.reset_index(inplace=True)
 df_data['datetime'] = df_data['datetime'].dt.strftime('%Y-%m-%d %H:%M:%S')
 
-df_data.to_csv('test.csv')
+
 
 print(df_data)
 
